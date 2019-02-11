@@ -66,7 +66,6 @@ class DataBaseQuery:
     def drop(self):
         self.conn.execute("""DROP TABLE IF EXISTS {0}""".format(self.TBL))
         self.conn.commit()
-
     def delete(self,ID):
         sql = "DELETE FROM {0} WHERE {1}='{2}'".format(self.TBL,self.primary,ID)
         return self.__query(sql)
@@ -120,7 +119,6 @@ class DataBaseQuery:
         else:return self.__query("CREATE VIEW {0} AS SELECT {1} FROM {2} WHERE {3}".format(view,col,self.TBL,cond))
     def destroyView(self,view):
         return self.__query("DROP VIEW {0}".format(view))
-
     def alterColumn(self,cmd,add,type):
         if(cmd==DataBaseHandlerConst.ADDCOLUMN):
             return self.__query("ALTER TABLE {0} ADD {1} {2}".format(self.TBL,add,type))
@@ -133,7 +131,6 @@ class DataBaseQuery:
             return self.__fetch("SELECT {2}, MIN({0}) FROM {1}".format(col,self.TBL,self.primary))
         else:
             return self.__fetch("SELECT {3}, MIN({0}) FROM {1} WHERE {2}".format(col,self.TBL,cond,self.primary))
-
     def getMax(self,col,cond=""):
         if(cond==""):
             return self.__fetch("SELECT {2}, MAX({0}) FROM {1}".format(col,self.TBL,self.primary))
