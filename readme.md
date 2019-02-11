@@ -24,7 +24,7 @@
       * setDefaultName(name)
       * setColumns(col,colist,primary=None)
     * ( Examples ) 
-      ```python
+```python
     dbt = DataBaseTable()
     dbt.setTable(
                     name   = "CONFIG_TABLE",
@@ -37,7 +37,7 @@
                 )
     dbt.setDefaultName("_config.db")
 
-      ```
+```
     * DataBaseTableHandler Class
       * begin(path=None)
       * end()
@@ -63,7 +63,7 @@
       * cachedAlterColumnSync(operation,new(old)_column,type)
       * cachedAlterColumnOnly(operation,new(old)_column,type)
       * setCustomSched(bool)
-      ```python
+```python
     dbh = DataBaseTableHandler(dbt)
     dbh.begin()
   
@@ -92,10 +92,10 @@
 
     # Clear database.
     dbh.end()
-      ```
+```
 
 * Build a custom Database table handler
-      ```python
+```python
 
 class DataBaseTableHandler(DataBaseHandler):
     # The type must be DataBaseTable.
@@ -111,6 +111,6 @@ class DataBaseTableHandler(DataBaseHandler):
         pass
     def onSched(self,ptr):  # cache scheduling callback
         pass
-      ```
+```
       
 ---------------------------------------
