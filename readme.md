@@ -23,23 +23,8 @@
       * setTableName(name)     
       * setDefaultName(name)
       * setColumns(col,colist,primary=None)
-    * ( Examples )
-```python
-    dbt = DataBaseTable()
-    dbt.setTable(
-                    name   = "CONFIG_TABLE",
-                    col    = """
-                            key    text primary key not NULL,
-                            value  int,
-                            desc   varchar[128]
-                            """,
-                    colist = ["key","value","desc"],
-                )
-    dbt.setDefaultName("_config.db")
-```
-
-
-
+          
+          
     * DataBaseTableHandler Class
       * begin(path=None)
       * end()
@@ -65,8 +50,20 @@
       * cachedAlterColumnSync(operation,new(old)_column,type)
       * cachedAlterColumnOnly(operation,new(old)_column,type)
       * setCustomSched(bool)
-      
+    * ( Examples )
 ```python
+    dbt = DataBaseTable()
+    dbt.setTable(
+                    name   = "CONFIG_TABLE",
+                    col    = """
+                            key    text primary key not NULL,
+                            value  int,
+                            desc   varchar[128]
+                            """,
+                    colist = ["key","value","desc"],
+                )
+    dbt.setDefaultName("_config.db")
+
     dbh = DataBaseTableHandler(dbt)
     dbh.begin()
   
