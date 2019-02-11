@@ -38,6 +38,8 @@
     dbt.setDefaultName("_config.db")
 ```
 
+
+
     * DataBaseTableHandler Class
       * begin(path=None)
       * end()
