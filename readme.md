@@ -23,7 +23,7 @@
       * setTableName(name)     
       * setDefaultName(name)
       * setColumns(col,colist,primary=None)
-    * ( Examples ) 
+    * ( Examples )
 ```python
     dbt = DataBaseTable()
     dbt.setTable(
@@ -63,6 +63,7 @@
       * cachedAlterColumnSync(operation,new(old)_column,type)
       * cachedAlterColumnOnly(operation,new(old)_column,type)
       * setCustomSched(bool)
+      
 ```python
     dbh = DataBaseTableHandler(dbt)
     dbh.begin()
