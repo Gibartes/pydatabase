@@ -17,8 +17,6 @@
       * MODIFYCOLOUMNS
       * ADDCOLUMN
       * DROPCOLUMN
-      * SCHED_MODIFY
-      * SCHED_SEARCH
       
     * DataBaseTable Class
       * setTable(name,col,colist,primary=None)
@@ -28,20 +26,25 @@
           
           
     * DataBaseTableHandler Class
-      * begin(path=None)
-      * end()
-      * add(data_row)
-      * delete(primary_unique_key)
-      * pop()
-      * get(primary_unique_key)
-      * getByCol(primary_unique_key,column)
-      * getByCond(SQL_condition_statement)
-      * set(primary_unique_key,column,value)
-      * setByCols(primary_unique_key,column_list,data_list)
-      * group(SQL_condition_statement,group)
-      * createView(view_name,str_column_list,SQL_condition_statement)
-      * destroyView(view_name)
-      * alterColumn(operation,new(old)_column,type)
+      * (bool,int)   begin(path=None)
+      * void         end()
+      * (bool,list)  add(data_row)
+      * (bool,list)  delete(primary_unique_key)
+      * (bool,list)  pop()
+      * (bool,list)  get(primary_unique_key)
+      * (bool,list)  getByCol(primary_unique_key,column)
+      * (bool,list)  getByCond(SQL_condition_statement)
+      * (bool,lists) getAll()
+      * (bool,lists) filter(SQL_condition_statement)
+      * (bool,list)  set(primary_unique_key,column,value)
+      * (bool,list)  setByCols(primary_unique_key,column_list,data_list)
+      * (bool,bool)  group(SQL_condition_statement,group)
+      * (bool,bool)  createView(view_name,str_column_list,SQL_condition_statement)
+      * (bool,bool)  destroyView(view_name)
+      * (bool,bool)  alterColumn(operation,new(old)_column,type)
+      * (bool,lists) getMin(column,SQL_condition_statement)
+      * (bool,lists) getMax(column,SQL_condition_statement)
+
       
     * ( Examples )
 ```python

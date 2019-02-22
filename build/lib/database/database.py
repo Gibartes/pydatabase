@@ -121,6 +121,10 @@ class DataBaseQuery:
     def readAll(self,PRIMARY_ORDER=""):
         sql  = "SELECT * FROM {0} ORDER BY {1} DESC".format(self.TBL,PRIMARY_ORDER)
         return self.__fetchAll(sql)
+    # get rows with the given condition statement in the database
+    def filter(self,cond,PRIMARY_ORDER=""):
+        sql  = "SELECT * FROM {0} WHERE {1} ORDER BY {2} DESC".format(self.TBL,cond,PRIMARY_ORDER)
+        return self.__fetchAll(sql)
     # Modify Method Family
     def modify(self,ID,col,data):
         sql  = "UPDATE {0} SET {1}='{2}' WHERE {3}='{4}'".format(self.TBL,col,data,self.primary,ID)
@@ -155,14 +159,14 @@ class DataBaseQuery:
         
     def getMin(self,col,cond=""):
         if(cond==""):
-            return self.__fetch("SELECT {2}, MIN({0}) FROM {1}".format(col,self.TBL,self.primary))
+            return self.__fetchAll("SELECT {2}, MIN({0}) FROM {1}".format(col,self.TBL,self.primary))
         else:
-            return self.__fetch("SELECT {3}, MIN({0}) FROM {1} WHERE {2}".format(col,self.TBL,cond,self.primary))
+            return self.__fetchAll("SELECT {3}, MIN({0}) FROM {1} WHERE {2}".format(col,self.TBL,cond,self.primary))
     def getMax(self,col,cond=""):
         if(cond==""):
-            return self.__fetch("SELECT {2}, MAX({0}) FROM {1}".format(col,self.TBL,self.primary))
+            return self.__fetchAll("SELECT {2}, MAX({0}) FROM {1}".format(col,self.TBL,self.primary))
         else:
-            return self.__fetch("SELECT {3}, MAX({0}) FROM {1} WHERE {2}".format(col,self.TBL,cond,self.primary))    
+            return self.__fetchAll("SELECT {3}, MAX({0}) FROM {1} WHERE {2}".format(col,self.TBL,cond,self.primary))    
 
 # This class is a parent class for the inheritance
 class DataBaseHandler(metaclass=ABCMeta):
@@ -230,14 +234,18 @@ class DataBaseHandler(metaclass=ABCMeta):
     def getAll(self):
         try:return (True,self.db.readAll(self.table.PRIMARY_ORDER))
         except sqlite3.Error as e:return (None,e)
+    def filter(self,cond):
+        try:return (True,self.db.readByCond(cond,self.table.PRIMARY_ORDER))
+        except sqlite3.Error as e:return (None,e)
     # Modify the value in database by the specific column.
     def set(self,key,col,value):
         try:return (True,self.db.modify(key,col,value))
         except sqlite3.Error as e:return (None,e)
     def setByCols(self,key,col,data):
         if(len(col)!=len(data)):return (False,0)
-        return (True,self.db.modifies(key,col,data))
-
+        try:return (True,self.db.modifies(key,col,data))
+        except sqlite3.Error as e:return (None,e)
+        
     def group(self,cond,grp):
         if(len(grp)>len(cond)):return (False,0)
         try:return (True,self.db.group(col,cond))
@@ -250,7 +258,13 @@ class DataBaseHandler(metaclass=ABCMeta):
         except sqlite3.Error as e:return (None,e)
     def alterColumn(self,cmd,add,type):
         return self.db.alterColumn(cmd,add,type)
-   
+    def getMin(self,col,cond=""):
+        try:return (True,self.db.getMin(col,cond))
+        except sqlite3.Error as e:return (None,e)
+    def getMin(self,col,cond=""):
+        try:return (True,self.db.getMax(col,cond))
+        except sqlite3.Error as e:return (None,e)
+        
     # Interfaces.
     @abstractmethod
     def onCreate(self):
