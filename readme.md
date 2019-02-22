@@ -1,6 +1,8 @@
 # Pydatabase SQL
 ---------------------------------------
 ## Documentations
+* Install
+  * pip install sqlHelper
 * Class
   * DataBaseTable
     * Create a database table.
@@ -40,16 +42,7 @@
       * createView(view_name,str_column_list,SQL_condition_statement)
       * destroyView(view_name)
       * alterColumn(operation,new(old)_column,type)
-      * cachedInit()
-      * cachedClear()
-      * cachedDelete(primary_unique_key,sync=True,sched=True)
-      * cachedModify(modify_operation,primary_unique_key,column(list),value(list),sync=True,sched=True)
-      * cachedSearch(search_operation,query_object,sched=True)
-      * cachedPop(primary_unique_key,sched=True)
-      * setCacheSize(hit=0)
-      * cachedAlterColumnSync(operation,new(old)_column,type)
-      * cachedAlterColumnOnly(operation,new(old)_column,type)
-      * setCustomSched(bool)
+      
     * ( Examples )
 ```python
     dbt = DataBaseTable()
@@ -82,13 +75,6 @@
 
     # Create View
     dbh.createView("Key_Desc_View","key, desc","value > 2")
-
-    # Caching Test
-    print("Cache Test")
-    dbh.cachedInit()
-    print(dbh.cachedSearch(DataBaseHandlerConst.QUERYBYID,"weight"))
-    dbh.add(["IQ",7,"alter column test"])
-    print(dbh.cachedSearch(DataBaseHandlerConst.QUERYBYID,"IQ"))
 
     # Clear database.
     dbh.end()

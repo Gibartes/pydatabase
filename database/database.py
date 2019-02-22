@@ -1,4 +1,31 @@
-# Author : by Gibartes
+#!/usr/bin/python
+
+# MIT License
+# Author : Kwon Hong Kyun
+
+"""
+MIT License
+
+    Copyright (c) 2018 
+
+    Permission is hereby granted, free of charge, to any person obtaining a copy
+    of this software and associated documentation files (the "Software"), to deal
+    in the Software without restriction, including without limitation the rights
+    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+    copies of the Software, and to permit persons to whom the Software is
+    furnished to do so, subject to the following conditions:
+
+    The above copyright notice and this permission notice shall be included in all
+    copies or substantial portions of the Software.
+
+    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+    SOFTWARE.
+"""
 
 import time
 import sqlite3,os
@@ -25,12 +52,6 @@ class DataBaseHandlerConst(object):
     MODIFYCOLUMNS   = 2
     ADDCOLUMN       = 1
     DROPCOLUMN      = 2
-    MODE_LRU        = 0
-    MODE_OTHER      = 1
-    MODE_TIMESTAMP  = "__timestamp__"
-    SCHED_MODIFY    = 0
-    SCHED_SEARCH    = 1
-    DEFAULT_CONT    = 100
 
 class DataBaseQuery:
     def __init__(self,dbname,primary):
@@ -50,7 +71,11 @@ class DataBaseQuery:
             for row in self.cursor:
                 return row
         except:return None
-
+    def __fetchAll(self,sql):
+        try:
+            self.cursor.execute(sql)
+            return self.cursor.fetchall()
+        except:return None
     # Database Initialization Method Family
     def connect(self,path):
         self.conn = sqlite3.connect(path)
@@ -93,7 +118,9 @@ class DataBaseQuery:
     def readByColCond(self,col,cond,PRIMARY_ORDER=""):
         sql  = "SELECT {0} FROM {1} WHERE {2} ORDER BY {3} DESC".format(col,self.TBL,cond,PRIMARY_ORDER)
         return self.__fetch(sql)
-
+    def readAll(self,PRIMARY_ORDER=""):
+        sql  = "SELECT * FROM {0} ORDER BY {1} DESC".format(self.TBL,PRIMARY_ORDER)
+        return self.__fetchAll(sql)
     # Modify Method Family
     def modify(self,ID,col,data):
         sql  = "UPDATE {0} SET {1}='{2}' WHERE {3}='{4}'".format(self.TBL,col,data,self.primary,ID)
@@ -143,11 +170,6 @@ class DataBaseHandler(metaclass=ABCMeta):
         self.db     = DataBaseQuery(Table.TBL_NAME,Table.PRIMARY_ORDER)
         self.sep    = os.sep
         self.table  = Table
-        self.value  = list()
-        self.cache  = None
-        self.hit    = 0
-        self.MaxHit = 100
-        self.sched  = False # custom scheduling (default:disabled)
         self.onCreate()
     # Create a database according to defined table class.
     def create(self):
@@ -165,7 +187,6 @@ class DataBaseHandler(metaclass=ABCMeta):
     # Close the current connection.
     def end(self):
         self.db.close()
-        self.cachedClear()
         self.onDestory()
 
     # Add a row in the database.
@@ -206,7 +227,9 @@ class DataBaseHandler(metaclass=ABCMeta):
     def getByColCond(self,col,cond):
         try:return (True,self.db.readByColCond(col,cond,self.table.PRIMARY_ORDER))
         except sqlite3.Error as e:return (None,e)
-
+    def getAll(self):
+        try:return (True,self.db.readAll(self.table.PRIMARY_ORDER))
+        except sqlite3.Error as e:return (None,e)
     # Modify the value in database by the specific column.
     def set(self,key,col,value):
         try:return (True,self.db.modify(key,col,value))
@@ -227,124 +250,7 @@ class DataBaseHandler(metaclass=ABCMeta):
         except sqlite3.Error as e:return (None,e)
     def alterColumn(self,cmd,add,type):
         return self.db.alterColumn(cmd,add,type)
-
-
-
-    # Cached.
-    def __cacheUpdate(self,value):
-        if(type(value)!=list and len(value)!=self.table.LENGTH):
-            return (False,0)
-        try:
-            self.cache.insert(OrderedDict(zip(self.table.COLUMNSLIST,value)))
-            return (True,0)
-        except sqlite3.Error as e:
-            return (None,e)
-    def __cachedSearch(self,opt,batch):
-        ret = (False,False)
-        try:
-            if(opt==DataBaseHandlerConst.QUERYBYID):
-                ret = self.cache.read(batch,self.table.PRIMARY_ORDER)
-            elif(opt==DataBaseHandlerConst.QUERYBYCOND):
-                ret = self.cache.readByCond(batch,self.table.PRIMARY_ORDER)
-            return ret 
-        except sqlite3.Error as e:return (None,e)
-    def __cachedModify(self,opt,key,col,value):
-        try:
-            if(opt==DataBaseHandlerConst.MODIFYEACH):
-                return (True,self.cache.modify(key,col,value))
-            elif(opt==DataBaseHandlerConst.MODIFYCOLUMNS):
-                return (True,self.cache.modifies(key,col,value))
-        except sqlite3.Error as e:return (None,e)
-    def cachedClear(self):
-        if(type(self.cache)==DataBaseQuery):
-            self.cache.build(self.table.COLUMNS)
-            self.cache.close()
-            self.hit = 0
-    def cachedInit(self):
-        path = ".{0}_cached_{1}".format(self.sep,self.table.DEFAULT_NAME)
-        ret  = os.path.exists(path)
-        self.cache = DataBaseQuery(self.table.TBL_NAME,self.table.PRIMARY_ORDER)
-        self.cache.connect(path)
-        if(ret==False):
-            self.cache.build(self.table.COLUMNS)
-            ret = self.cachedAlterColumnOnly(DataBaseHandlerConst.ADDCOLUMN,DataBaseHandlerConst.MODE_TIMESTAMP,"int")
-            return (True,1)
-        return (True,0)
-    def cachedDelete(self,key,sync=True,sched=True):
-        ret = self.cachedPop(key,sched)
-        if(sync==True):
-            return self.delete(key)
-        return ret
-    def cachedModify(self,opt,key,col,value,sync=True,sched=True):
-        ret = self.__cachedModify(opt,key,col,value)
-        if(ret[0]==True):
-            if(sched==True and self.sched==False):
-                self.cache.modify(ret[1][0],DataBaseHandlerConst.MODE_TIMESTAMP,time.time())
-            elif(sched==True and self.sched==True):self.onSched(DataBaseHandlerConst.SCHED_MODIFY)
-        if(sync==True and opt==DataBaseHandlerConst.MODIFYEACH):
-            return self.set(key,col,value)
-        elif(sync==True and opt==DataBaseHandlerConst.MODIFYCOLUMNS):
-            return self.setByCols(key,col,value)
-        return ret 
-    def cachedSearch(self,opt,batch,sched=True):
-        ret = self.__cachedSearch(opt,batch)
-        if(ret!=None and ret[0]!=None):
-            if(sched==True and self.sched==False):
-                self.cache.modify(ret[0],DataBaseHandlerConst.MODE_TIMESTAMP,time.time())
-                self.cachedLRUSched()
-            elif(sched==True and self.sched==True):
-                self.onSched(DataBaseHandlerConst.SCHED_SEARCH)
-            return ret 	# short circuit
-        if(opt==DataBaseHandlerConst.QUERYBYID):
-            ret = self.get(batch)
-        elif(opt==DataBaseHandlerConst.QUERYBYCOND):
-            ret = self.getByCond(batch)
-        else:return ret
-        if(ret[0]==True):
-            if(sched==True and self.sched==False):
-                self.__cacheUpdate(ret[1])
-                self.cache.modify(ret[1][0],DataBaseHandlerConst.MODE_TIMESTAMP,time.time())
-                self.hit+=1
-                self.cachedLRUSched()
-            elif(sched==True and self.sched==True):
-                self.onSched(DataBaseHandlerConst.SCHED_SEARCH)
-                self.__cacheUpdate(ret[1])
-        return ret
-    def cachedPop(self,key,sched=True):
-        try:
-            ret = self.cache.delete(key)
-            if(sched==True and ret!=None and self.sched==False):
-                self.hit-=1
-            elif(sched==True and ret!=None and self.sched==True):
-                self.onSched()
-            return (True,ret)
-        except sqlite3.Error as e:return (None,e)
-    def setCacheSize(self,hit=0):
-        if(hit<1):self.MaxHit = DataBaseHandlerConst.DEFAULT_CONT
-        else:self.MaxHit = int(hit)
-        
-    # LRU scheduling
-    def __cachedLRUSched(self):
-        try:
-            ret = self.cache.getMin(DataBaseHandlerConst.MODE_TIMESTAMP)
-            if(ret==None):return
-            self.cache.delete(ret[0])
-            self.hit-=1
-            return ret[0]
-        except:return
-    def cachedLRUSched(self):
-        if(self.hit==self.MaxHit):
-            return self.__cachedLRUSched()
-        return
-    def cachedAlterColumnSync(self,cmd,add,type):
-        try:return (self.db.alterColumn(cmd,add,type),self.cache.alterColumn(cmd,add,type))
-        except:return (None,None)
-    def cachedAlterColumnOnly(self,cmd,add,type):
-        try:return (True,self.cache.alterColumn(cmd,add,type))
-        except:return (None,None)
-    
-    
-    
+   
     # Interfaces.
     @abstractmethod
     def onCreate(self):
@@ -352,11 +258,6 @@ class DataBaseHandler(metaclass=ABCMeta):
     @abstractmethod
     def onDestory(self):
         pass
-    @abstractmethod
-    def onSched(self,ptr):
-        pass
-
-
 
 class __DataBaseTableStruct(object):
     TBL_NAME      = "Configuration_Table"
@@ -403,9 +304,3 @@ class DataBaseTableHandler(DataBaseHandler):
         pass
     def onDestory(self):
         pass
-    def onSched(self,ptr):
-        # self.sched = True
-        # if you want to use cache alogrithm like LRU and add LRU Algorithm
-        pass
-
-
