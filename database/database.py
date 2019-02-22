@@ -121,6 +121,10 @@ class DataBaseQuery:
     def readAll(self,PRIMARY_ORDER=""):
         sql  = "SELECT * FROM {0} ORDER BY {1} DESC".format(self.TBL,PRIMARY_ORDER)
         return self.__fetchAll(sql)
+    # get rows with the given condition statement in the database
+    def filter(self,cond,PRIMARY_ORDER=""):
+        sql  = "SELECT * FROM {0} WHERE {1} ORDER BY {2} DESC".format(self.TBL,cond,PRIMARY_ORDER)
+        return self.__fetchAll(sql)
     # Modify Method Family
     def modify(self,ID,col,data):
         sql  = "UPDATE {0} SET {1}='{2}' WHERE {3}='{4}'".format(self.TBL,col,data,self.primary,ID)
@@ -229,6 +233,9 @@ class DataBaseHandler(metaclass=ABCMeta):
         except sqlite3.Error as e:return (None,e)
     def getAll(self):
         try:return (True,self.db.readAll(self.table.PRIMARY_ORDER))
+        except sqlite3.Error as e:return (None,e)
+    def filter(self,cond):
+        try:return (True,self.db.readByCond(cond,self.table.PRIMARY_ORDER))
         except sqlite3.Error as e:return (None,e)
     # Modify the value in database by the specific column.
     def set(self,key,col,value):
