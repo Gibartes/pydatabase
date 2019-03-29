@@ -23,6 +23,8 @@
       * setTableName(name)     
       * setDefaultName(name)
       * setColumns(col,colist,primary=None)
+      * shoeColumns()
+      * showName()
           
           
     * DataBaseTableHandler Class
@@ -34,6 +36,7 @@
       * (bool,list)  get(primary_unique_key)
       * (bool,list)  getByCol(primary_unique_key,column)
       * (bool,list)  getByCond(SQL_condition_statement)
+      * (bool,list)  getByColCond(column,SQL_condition_statement)
       * (bool,lists) getAll()
       * (bool,lists) filter(SQL_condition_statement)
       * (bool,list)  set(primary_unique_key,column,value)
@@ -48,7 +51,9 @@
       
     * ( Examples )
 ```python
-    dbt = DataBaseTable()
+    from database import *
+    
+    dbt = database.DataBaseTable()
     dbt.setTable(
                     name   = "CONFIG_TABLE",
                     col    = """
@@ -59,8 +64,9 @@
                     colist = ["key","value","desc"],
                 )
     dbt.setDefaultName("_config.db")
-
-    dbh = DataBaseTableHandler(dbt)
+    dbt.showColumns()
+    
+    dbh = database.DataBaseTableHandler(dbt)
     dbh.begin()
   
     # Data operation in the database

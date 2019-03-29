@@ -309,7 +309,10 @@ class DataBaseTable(__DataBaseTableStruct):
     def setTable(self,name,col,colist,primary=None):
         self.setTableName(name)
         self.setColumns(col,colist,primary)
-
+    def showColumns(self):
+        print(self.COLUMNSLIST)
+    def showName(self)
+        print(self.TBL_NAME)
 
 class DataBaseTableHandler(DataBaseHandler):
     # The type must be DataBaseTable.
