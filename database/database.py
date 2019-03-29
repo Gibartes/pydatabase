@@ -241,6 +241,9 @@ class DataBaseHandler(metaclass=ABCMeta):
     def filter(self,cond):
         try:return (True,self.db.readByCond(cond,self.table.PRIMARY_ORDER))
         except sqlite3.Error as e:return (None,e)
+    def filterAll(self,cond):
+        try:return (True,self.db.filter(cond,self.table.PRIMARY_ORDER))
+        except sqlite3.Error as e:return (None,e)
     # Modify the value in database by the specific column.
     def set(self,key,col,value):
         try:return (True,self.db.modify(key,col,value))

@@ -39,6 +39,7 @@
       * (bool,list)  getByColCond(column,SQL_condition_statement)
       * (bool,lists) getAll()
       * (bool,lists) filter(SQL_condition_statement)
+      * (bool,lists) filterAll(SQL_condition_statement)
       * (bool,list)  set(primary_unique_key,column,value)
       * (bool,list)  setByCols(primary_unique_key,column_list,data_list)
       * (bool,bool)  group(SQL_condition_statement,group)
