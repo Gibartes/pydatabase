@@ -59,6 +59,8 @@ class DataBaseQuery:
         self.primary = primary
         self.conn    = 0
         self.cursor  = 0
+    def __del__(self):
+        return self.close()
     def __query(self,sql):
         try:
             self.cursor.execute(sql)
@@ -175,6 +177,8 @@ class DataBaseHandler(metaclass=ABCMeta):
         self.sep    = os.sep
         self.table  = Table
         self.onCreate()
+    def __del__(self):
+        return self.end()
     # Create a database according to defined table class.
     def create(self):
         self.db.build(self.table.COLUMNS)
