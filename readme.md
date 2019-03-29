@@ -83,6 +83,9 @@
     print(dbh.setByCols("height",["value","desc"],[6,"world"]))
     print(dbh.getByCol("height","value"))
 
+   # filter data under certain condition
+    print(dbh.filterAlll("value < 3 AND key < 'w'"))
+
     # Create View
     dbh.createView("Key_Desc_View","key, desc","value > 2")
 
