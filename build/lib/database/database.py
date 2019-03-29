@@ -311,7 +311,7 @@ class DataBaseTable(__DataBaseTableStruct):
         self.setColumns(col,colist,primary)
     def showColumns(self):
         print(self.COLUMNSLIST)
-    def showName(self)
+    def showName(self):
         print(self.TBL_NAME)
 
 class DataBaseTableHandler(DataBaseHandler):
