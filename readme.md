@@ -23,7 +23,7 @@
       * setTableName(name)     
       * setDefaultName(name)
       * setColumns(col,colist,primary=None)
-      * shoeColumns()
+      * showColumns()
       * showName()
           
           
