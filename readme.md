@@ -28,9 +28,12 @@
           
           
     * DataBaseTableHandler Class
+      * int          page
       * (bool,int)   begin(path=None)
       * void         end()
-      * (bool,list)  add(data_row)
+      * (bool,list)  add(data_row,lazy=False)
+      * (bool,list)  addCount(data_row)
+      * (bool,list)  commit()
       * (bool,list)  delete(primary_unique_key)
       * (bool,list)  pop()
       * (bool,list)  get(primary_unique_key)
@@ -40,8 +43,8 @@
       * (bool,lists) getAll()
       * (bool,lists) filter(SQL_condition_statement)
       * (bool,lists) filterAll(SQL_condition_statement)
-      * (bool,list)  set(primary_unique_key,column,value)
-      * (bool,list)  setByCols(primary_unique_key,column_list,data_list)
+      * (bool,list)  set(primary_unique_key,column,value,lazy=False)
+      * (bool,list)  setByCols(primary_unique_key,column_list,data_list,lazy=False)
       * (bool,bool)  group(SQL_condition_statement,group)
       * (bool,bool)  createView(view_name,str_column_list,SQL_condition_statement)
       * (bool,bool)  destroyView(view_name)
@@ -68,6 +71,7 @@
     dbt.showColumns()
     
     dbh = database.DataBaseTableHandler(dbt)
+    dbh.page = 10000 # Execute container for better i/o.
     dbh.begin()
   
     # Data operation in the database
@@ -75,11 +79,13 @@
     dbh.add(["weight",1,"description"])
     dbh.add(["age",9,"description"])
     print(dbh.get("height"))
-    dbh.delete("height")
+    dbh.delete("weight")
+    print(dbh.get("weight"))
+    dbh.add(["height",180,"description"],lazy=True)
+    dbh.get("height")
+    dbh.commit()
     print(dbh.get("height"))
-    dbh.add(["height",1,"description"])
-    dbh.set("height","value",3)
-    print(dbh.get("height"))
+    dbh.set("age","value",30)    
     print(dbh.setByCols("height",["value","desc"],[6,"world"]))
     print(dbh.getByCol("height","value"))
 

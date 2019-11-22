@@ -67,6 +67,11 @@ class DataBaseQuery:
             self.conn.commit()
             return True
         except:return None
+    def __query_lazy(self,sql):
+        try:
+            self.cursor.execute(sql)
+            return True
+        except:return None
     def __fetch(self,sql):
         try:
             self.cursor.execute(sql)
@@ -96,11 +101,13 @@ class DataBaseQuery:
     def delete(self,ID):
         sql = "DELETE FROM {0} WHERE {1}='{2}'".format(self.TBL,self.primary,ID)
         return self.__query(sql)
-    def insert(self,row):
+    def insert(self,row,lazy=False):
         cols = ', '.join('"{}"'.format(col) for col in row.keys())
         vals = ', '.join(':{}'.format(col)  for col in row.keys())
         sql  = 'INSERT INTO "{0}" ({1}) VALUES ({2})'.format(self.TBL,cols,vals)
         self.cursor.execute(sql,row)
+        if(lazy==False):self.conn.commit()
+    def commit(self):
         self.conn.commit()
 
     # Read Method Family
@@ -128,15 +135,19 @@ class DataBaseQuery:
         sql  = "SELECT * FROM {0} WHERE {1} ORDER BY {2} DESC".format(self.TBL,cond,PRIMARY_ORDER)
         return self.__fetchAll(sql)
     # Modify Method Family
-    def modify(self,ID,col,data):
+    def modify(self,ID,col,data,lazy=False):
         sql  = "UPDATE {0} SET {1}='{2}' WHERE {3}='{4}'".format(self.TBL,col,data,self.primary,ID)
-        return self.__query(sql)
-    def modifies(self,ID,col,data):
+        if(lazy==False):
+            return self.__query(sql)
+        return self.__query_lazy(sql)
+    def modifies(self,ID,col,data,lazy=False):
         var = list()
         for (i,j) in zip(col,data):var.append("{0} = '{1}'".format(i,j))
         var = ', '.join(var)
         sql  = "UPDATE {0} SET {1} WHERE {2}='{3}'".format(self.TBL,var,self.primary,ID)
-        return self.__query(sql)
+        if(lazy==False):
+            return self.__query(sql)
+        return self.__query_lazy(sql)
 
     # Adds on
     def getTop(self):
@@ -173,9 +184,11 @@ class DataBaseQuery:
 # This class is a parent class for the inheritance
 class DataBaseHandler(metaclass=ABCMeta):
     def __init__(self,Table):
-        self.db     = DataBaseQuery(Table.TBL_NAME,Table.PRIMARY_ORDER)
-        self.sep    = os.sep
-        self.table  = Table
+        self.db      = DataBaseQuery(Table.TBL_NAME,Table.PRIMARY_ORDER)
+        self.sep     = os.sep
+        self.table   = Table
+        self.__count = 0
+        self.page    = 0
         self.onCreate()
     def __del__(self):
         return self.end()
@@ -196,13 +209,33 @@ class DataBaseHandler(metaclass=ABCMeta):
     def end(self):
         self.db.close()
         self.onDestory()
-
+    # Commit to the database.
+    def commit(self):
+        try:
+            self.db.commit()
+            self.__count=0
+            return (True,0)
+        except sqlite3.Error as e:
+            return (None,e)
     # Add a row in the database.
-    def add(self,value):
+    def add(self,value,lazy=False):
         if(type(value)!=list and len(value)!=self.table.LENGTH):
             return (False,0)
         try:
-            self.db.insert(OrderedDict(zip(self.table.COLUMNSLIST,value)))
+            self.db.insert(OrderedDict(zip(self.table.COLUMNSLIST,value)),lazy)
+            return (True,0)
+        except sqlite3.Error as e:
+            return (None,e)
+    # Add records in the database (Lazy)
+    def addCount(self,value):
+        if(type(value)!=list and len(value)!=self.table.LENGTH):
+            return (False,0)
+        try:
+            self.db.insert(OrderedDict(zip(self.table.COLUMNSLIST,value)),True)
+            self.__count+=1
+            if(self.__count>=self.page):
+                self.commit()
+                self.__count=0
             return (True,0)
         except sqlite3.Error as e:
             return (None,e)
@@ -245,12 +278,12 @@ class DataBaseHandler(metaclass=ABCMeta):
         try:return (True,self.db.filter(cond,self.table.PRIMARY_ORDER))
         except sqlite3.Error as e:return (None,e)
     # Modify the value in database by the specific column.
-    def set(self,key,col,value):
-        try:return (True,self.db.modify(key,col,value))
+    def set(self,key,col,value,lazy=False):
+        try:return (True,self.db.modify(key,col,value,lazy))
         except sqlite3.Error as e:return (None,e)
-    def setByCols(self,key,col,data):
+    def setByCols(self,key,col,data,lazy=False):
         if(len(col)!=len(data)):return (False,0)
-        try:return (True,self.db.modifies(key,col,data))
+        try:return (True,self.db.modifies(key,col,data,lazy))
         except sqlite3.Error as e:return (None,e)
         
     def group(self,cond,grp):
@@ -316,6 +349,19 @@ class DataBaseTable(__DataBaseTableStruct):
         print(self.COLUMNSLIST)
     def showName(self):
         print(self.TBL_NAME)
+    @staticmethod
+    def createTableTextFormPair(column):
+        __str = ""
+        for i in column:
+            if(len(i)!=2):return ""
+            __str += "{0} {1}, ".format(i[0],i[1])
+        return __str[:-2]
+    @staticmethod
+    def createColumnListFromPair(column):
+        __str = list()
+        for i in column:
+            __str.append(i[0])
+        return __str
 
 class DataBaseTableHandler(DataBaseHandler):
     # The type must be DataBaseTable.

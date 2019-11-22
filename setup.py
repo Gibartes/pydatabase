@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 
 setup(
     name 		= 'sqlHelper',
-    version 	= '1.1.0',
+    version 	= '1.1.3',
     description	= 'simple sqlite wrapper',
     author		= 'gibartes',
     install_requires = [],
@@ -18,6 +18,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7'
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8'
     ]
 )
